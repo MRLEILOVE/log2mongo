@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:v-on="http://www.w3.org/1999/xhtml">
+
+<head>
+    <title>登录</title>
+    <meta charset="UTF-8">
+    <meta name="keywords" content="">
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1, user-scalable=0"
+          name="viewport">
+    <meta content="yes" name="apple-mobile-web-app-capable">
+    <meta content="black" name="apple-mobile-web-app-status-bar-style">
+    <meta content="telephone=no" name="format-detection">
+    <link rel="stylesheet" href="layui/css/layui.css"/>
+    <link rel="icon" href="img/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="login/css/style.css"/>
+    <!-- 提示升级高级浏览器操作 -->
+    <style>
+        body {
+            -webkit-appearance: none;
+            /*谷歌内核*/
+            -moz-appearance: none;
+            /*火狐内核*/
+        }
+
+        .ie-content {
+            position: fixed;
+            left: 0;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            background: #fff;
+            z-index: 1000;
+        }
+
+        .ie-content-bj {
+            width: 1000px;
+            height: 380px;
+            position: fixed;
+            left: 50%;
+            top: 36%;
+            margin: -190px 0 0 -500px;
+            background: url(img/sj.jpg) no-repeat;
+        }
+
+        .ie-list {
+            padding: 168px 0 0 371px;
+        }
+
+        .ie-list a {
+            margin-right: 80px;
+        }
+
+        .logo {
+            margin-top: 45px;
+        }
+    </style>
+</head>
+
+<body class="body_bj">
+<div class="login" id="app">
+    <div class="logo">
+        <!--<img width="180" src="login/img/logo.png" alt="">-->
+        <span style="font-size: 32px;">
+        		日志管理系统
+        	</span>
+    </div>
+    <ul class="login-list">
+        <li>
+            <input type="text" required="required" id="username" name="username" v-model="params.username"
+                   placeholder="请输入用户名" min="1" maxlength="20" pattern="^.{1,20}$" title="请输入1~20位字符"
+                   onblur="this.checkValidity()">
+        </li>
+        <li>
+            <input type="password" required="required" id="password" name="password" v-model="params.password"
+                   placeholder="请输入6到20位密码" min="1" maxlength="20" pattern="^[a-zA-Z]\w{5,19}$" title="请输入1到20位密码">
+        </li>
+        <li>
+            <input type="text" required="required" id="imgCode" name="imgCode" v-model="params.imgCode"
+                   placeholder="请输入4位验证码" maxlength="4" pattern="^[a-zA-Z0-9]{6,6}$" title="请输入4位验证码">
+            <span class="yzm2">
+	        	<img ref="imgCodeShow" @click="getImgCode" src = '../auth/imgCode?imgCodeWidth=120&imgCodeHeight=40' alt="">
+	        </span>
+        </li>
+        <li>
+            <button type="submit" class="btn btn-primary btn-lg" @click="login()">登录</button>
+        </li>
+    </ul>
+</div>
+<!--[if lt IE 8]>
+<div class="ie-content">
+    <div class="ie-content-bj">
+        <div class="ie-list">
+            <a href="http://www.google.cn/intl/zh-CN/chrome/browser/"><img src="img/sj1.jpg" alt=""></a>
+            <a href="http://www.firefox.com.cn/"><img src="img/sj2.jpg" alt=""></a>
+            <a href="http://chrome.360.cn/"><img src="img/sj3.jpg" alt=""></a>
+        </div>
+    </div>
+</div>
+<![endif]-->
+</body>
+
+<!-- LayUi 核心 JS (这里是项目里面自带的 layui，不要引入 CDN 的 layui.js) -->
+<script src="layui/layui.js"></script>
+<script src="https://cdn.bootcss.com/vue/2.5.8/vue.min.js"></script>
+<script src="js/jsencrypt.js" type="text/javascript" charset="utf-8"></script>
+<script src="js/login.js" type="text/javascript" charset="utf-8"></script>
+<script src="js/base.js" type="text/javascript" charset="utf-8"></script>
+
+<script>
+    layui.use(['jquery', 'layer'], function () {
+        var $ = layui.jquery,
+            layer = layui.layer;
+
+        // 这里是通用的Vue的起始
+        var vm = new Vue({
+            el: '#app',
+            data: {
+                params: { // 这里定义需要传的参数
+                    username: '',
+                    password: '',
+                    imgCode: ''
+                },
+                items: [], // 这里是请求成功后，接收到的参数
+                loaded: false // 成功之后需要吧false改为true (success: function 下设置)
+            },
+            mounted: function () {
+            },
+            methods: {
+                getImgCode: function () {
+                    this.$refs.imgCodeShow.src = '../auth/imgCode?imgCodeWidth=' + 120 + '&imgCodeHeight=' + 40 + '&' + Math.random();
+                },
+                // 在此执行（定义方法）
+                login: function () { // 登录的方法
+                    if (!vm.params.username.trim()) {
+                        layer.tips('请输入用户名', '#username', {
+                            tips: [2, '#78BA32']
+                        });
+                    }
+                    else if (!vm.params.password.trim()) {
+                        layer.tips('请输入1到20位密码', '#password', {
+                            tips: [2, '#78BA32']
+                        });
+                    }
+                    else if (!vm.params.imgCode.trim() ||
+                        vm.params.imgCode.trim().length != 4) {
+                        layer.tips('请输入4位验证码', '#imgCode', {
+                            tips: [2, '#78BA32']
+                        });
+                    }
+                    else {
+                        $.post({
+                            url: '../auth',
+                            data: {
+                                username: vm.params.username,
+                                password: rsaEncrypt(vm.params.password),
+                                imgCode: vm.params.imgCode
+                            },
+                            success: function (resp) {
+                                if (resp.code == 200) location.href = 'index.html'
+                                else {
+                                    alert(resp.msg)
+                                    vm.getImgCode();
+                                }
+                            },
+                            error: function (resp) {
+                                resp=resp.responseJSON
+                                alert(resp.msg)
+                                vm.getImgCode();
+                            }
+                        });
+                    }
+                }
+            }
+        });
+
+        /**
+         * 回车键事件的监听
+         */
+        $(function () {
+            document.onkeydown = function (e) {
+                var ev = document.all ? window.event : e;
+                if (ev.keyCode == 13) {
+                    vm.login();
+                }
+            }
+        });
+    })
+</script>
+
+</html>

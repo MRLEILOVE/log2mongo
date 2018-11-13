@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Configuration status="off">
+
+    <properties>
+        <property name="pattern">%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %C{36}.%M(%F:%L) %msg%xEx%n</property>
+    </properties>
+
+    <Appenders>
+        <Console name="ConsoleLog" target="SYSTEM_OUT">
+            <ThresholdFilter level="debug" onMatch="ACCEPT" onMismatch="DENY"/>
+            <PatternLayout charset="UTF-8" pattern="${pattern}"/>
+        </Console>
+
+        <!--配置MongoAppender-->
+        <NoSql name="MongoAppender">
+            <!--参数分别是：数据库名，集合名，服务器ip，端口。还可以指定其他参数或升级版本，详情请看：http://logging.apache.org/log4j/2.x/manual/appenders.html#NoSQLAppender-->
+            <MongoDb databaseName="test" collectionName="log" server="192.168.0.187" port="27017"/>
+        </NoSql>
+    </Appenders>
+
+    <Loggers>
+        <Root level="info">
+            <appender-ref ref="ConsoleLog"/>
+            <AppenderRef ref="MongoAppender"/>
+        </Root>
+
+        <!--过滤掉spring等框架的无用日志信息，也可以在springboot的logging.level.org.springframework=FATAL设置-->
+        <logger name="org.springframework" level="warn"></logger>
+        <logger name="org.mongodb" level="warn"></logger>
+    </Loggers>
+</Configuration>

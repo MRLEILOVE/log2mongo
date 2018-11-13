@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="off">
+    <Appenders>
+        <NoSql name="MongoAppender">
+            <MongoDb databaseName="prod" collectionName="log" server="localhost" port="27017"/>
+        </NoSql>
+    </Appenders>
+    <Loggers>
+        <Root level="info">
+            <AppenderRef ref="MongoAppender"/>
+        </Root>
+
+        <logger name="org.springframework" level="warn"></logger>
+        <logger name="org.mongodb" level="warn"></logger>
+    </Loggers>
+</Configuration>

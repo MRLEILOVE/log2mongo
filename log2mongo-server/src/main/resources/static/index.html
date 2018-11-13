@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:v-bind="http://www.w3.org/1999/xhtml">
+
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="keywords" content=""/>
+    <meta name="description" content=""/>
+    <title>日志管理系统</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1, user-scalable=0"
+          name="viewport">
+    <meta content="yes" name="apple-mobile-web-app-capable">
+    <meta content="black" name="apple-mobile-web-app-status-bar-style">
+    <meta content="telephone=no" name="format-detection">
+    <link rel="icon" href="img/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="layui/css/layui.css"/>
+    <link rel="stylesheet" href="css/admin.css"/>
+    <link rel="stylesheet" type="text/css" media="screen and (max-width:992px)" href="css/admin.mobile.css">
+</head>
+
+<body>
+<!-- 布局容器 -->
+<div class="layui-layout layui-layout-admin" id="app">
+    <!-- 头部 -->
+    <div class="layui-header">
+        <div class="layui-main">
+            <div class="top-left">
+                <a href="javascript:;" class="logo" style="margin-left: 25px;">日志管理系统</a>
+                <a href="javascript:;" class="menu-flexible ml10">
+                    <i class="layui-icon">&#xe635;</i>
+                </a>
+            </div>
+            <!-- 头部右侧操作 -->
+            <ul class="layui-nav operate">
+                <li class="layui-nav-item">
+                    <a href="javascript:;" @click="quit">退出</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- 主体 -->
+    <div class="layui-body" style="left:0px">
+        <!-- 主要内容 -->
+        <div class="container">
+            <div class="search-res-mask"></div>
+            <div class="search-res">
+                <div class="content-search search-fix">
+                    <div class="layui-form layui-form-pane">
+                        <div class="layui-inline">
+                            <label class="layui-form-label">日志环境</label>
+                            <div class="layui-input-inline">
+                                <select ref="env" lay-filter="onchange">
+                                    <option value="prod" selected>生产环境</option>
+                                    <option value="test">测试环境</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="layui-inline">
+                            <label class="layui-form-label">日志级别</label>
+                            <div class="layui-input-inline">
+                                <select ref="levelRange" lay-filter="onchange">
+                                    <option value="DEBUG,INFO,WARN,ERROR,FATAL">全部级别</option>
+                                    <option value="INFO,WARN,ERROR,FATAL">>= INFO</option>
+                                    <option value="WARN,ERROR,FATAL" selected>>= WARN</option>
+                                    <option value="ERROR,FATAL">>= ERROR</option>
+                                    <option value="FATAL">>= FATAL</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="layui-inline" v-show="false">
+                            <label class="layui-form-label">关键词</label>
+                            <div class="layui-input-inline">
+                                <input class="layui-input" placeholder="请输入关键词的内容" ref="keyWord">
+                            </div>
+                        </div>
+                        <div class="layui-inline">
+                            <label class="layui-form-label">时间段</label>
+                            <div class="layui-input-inline">
+                                <input class="layui-input" placeholder="开始时间 - 截止时间" id="time" v-model="params.time"
+                                       readonly>
+                            </div>
+                        </div>
+                        <div class="layui-inline">
+                            <button class="layui-btn" @click="search">查询</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-list">
+                <table class="layui-table layui-list-table" lay-skin="line" style="table-layout: fixed">
+                    <thead>
+                    <tr>
+                        <th width="5%">日志级别</th>
+                        <th width="15%">记录时间</th>
+                        <th width="15%">所属线程</th>
+                        <th width="65%">日志内容</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr v-for="item in items" v-bind:style="{ color: item.color }">
+                        <td class="layui-table-first">
+                            <span class="layui-table-bd">{{item.level}}</span>
+                        </td>
+                        <td>
+                            <span class="layui-table-bd">{{item.date}}</span>
+                        </td>
+                        <td>
+                            <span class="layui-table-bd">{{item.threadName}}</span>
+                        </td>
+                        <td>
+                            <pre class="layui-table-bd" style="word-wrap:break-word;word-break:break-all;">{{item.message}}</pre>
+                        </td>
+                    </tr>
+                    <tr v-show="items.length == 0">
+                        <td class="layui-table-first" style="text-align: center" colspan="4">
+                            <span class="layui-table-bd">暂无日志</span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div id="table-pages" style="text-align:center"></div>
+        </div>
+    </div>
+</div>
+
+</body>
+<script type="text/javascript" src="layui/layui.js"></script>
+<script src="https://cdn.bootcss.com/vue/2.5.8/vue.min.js"></script>
+<script src="js/base.js"></script>
+<script>
+    // 这里是通用的Vue的起始
+    var vm = new Vue({
+        el: '#app',
+        data: {
+            params: {
+                time: (function () { //用闭包给属性赋值：括号内的函数会马上执行并返回值给time
+                    // 求一个月之前日期
+                    var aMonAgo = new Date()
+                    aMonAgo.setMonth(aMonAgo.getMonth() - 1)
+                    // 返回一个月之前的日期到现在的时间段
+                    return aMonAgo.Format("yyyy-MM-dd") + ' - ' + new Date().Format("yyyy-MM-dd")
+                })(),
+                pageNo: 1,
+                pageSize: 100,
+                elementCount: 0
+            },
+            items: [], // 这里是请求成功后，接收到的参数
+            loaded: false // 成功之后需要吧false改为true (success: function 下设置)
+        },
+        mounted: function () {
+            layui.use(['jquery', 'layer', 'laydate', 'laypage', 'form'], function () {
+                // 全局变量
+                $ = layui.jquery,
+                    layer = layui.layer,
+                    laydate = layui.laydate,
+                    form = layui.form,
+                    laypage = layui.laypage;
+
+                // 渲染时间段控件
+                laydate.render({
+                    elem: '#time',
+                    range: true,
+                    type: 'date', // 'month'  'date' 'datetime'
+                    value: vm.params.time, //默认值
+                    done: function (value, date, endDate) {
+                        // console.log(value); //得到日期生成的值，如：2017-08-18
+                        // console.log(date); //得到日期时间对象：{year: 2017, month: 8, date: 18, hours: 0, minutes: 0, seconds: 0}
+                        // console.log(endDate); //得结束的日期时间对象，开启范围选择（range: true）才会返回。对象成员同上。
+                        // var sdate = value.substring(0, 10);
+                        // var edate = value.substring(13);
+                    },
+                    change: function (value, date, endDate) { //值改变事件函数
+                        // console.log(value); //得到日期生成的值，如：2017-08-18
+                        // console.log(date); //得到日期时间对象：{year: 2017, month: 8, date: 18, hours: 0, minutes: 0, seconds: 0}
+                        // console.log(endDate); //得结束的日期时间对象，开启范围选择（range: true）才会返回。对象成员同上。
+                        if (value) {
+                            vm.params.time = value
+                            vm.search()
+                        }
+                    },
+                    trigger: 'click'
+                });
+
+                // 监听select控件的onchange事件，这是layui的特有监听方式，详情：https://blog.csdn.net/u012011360/article/details/78834852?tdsourcetag=s_pctim_aiomsg
+                form.on('select(onchange)', function (data) {
+                    vm.search()
+                })
+
+                // 进入页面就搜索，初始化界面
+                vm.search();
+            });
+        },
+        methods: {
+            /**
+             * 退出事件函数
+             * @author Yuanwl
+             * @date 2018-11-08 17:49:33
+             * @version v1.0.0
+             */
+            quit: function () {
+                $.ajax({
+                    url: '../auth',
+                    type: "delete",
+                    contentType: "application/json",
+                    dataType: "json",
+                    complete: function () {
+                        window.location.href = 'login.html'
+                    }
+                });
+            },
+            /**
+             * 搜索事件函数
+             * @author Yuanwl
+             * @date 2018-11-10 12:46:18
+             * @version v1.0.0
+             */
+            search: function () {
+                $.get({
+                    url: '../logs',
+                    data: {
+                        env: this.$refs.env.value,
+                        levelRange: this.$refs.levelRange.value,
+                        keyWord: this.$refs.keyWord.value,
+                        time: this.params.time,
+                        pageNo: this.params.pageNo,
+                        pageSize: this.params.pageSize
+                    },
+                    success: function (resp) {
+                        if (resp.code == 200) {
+                            // 返回的是分页对象，获取分页里的数据
+                            var data = resp.data.content
+                            // console.log(JSON.stringify(data))
+                            // 转换数据为页面需要的格式
+                            for (i in data) {
+                                var row = data[i];
+
+                                // 转换时间格式
+                                row.date = new Date(row.date).Format("yyyy-MM-dd hh:mm:ss.S")
+
+                                // 不同日志级别设置不同的颜色字体
+                                switch (row.level) {
+                                    case 'DEBUG':
+                                        row.color = 'blue';
+                                        break;
+                                    case 'INFO':
+                                        row.color = 'green';
+                                        break;
+                                    case 'WARN':
+                                        row.color = 'orange';
+                                        break;
+                                    case 'ERROR':
+                                        row.color = 'red';
+                                        break;
+                                    case 'FATAL':
+                                        row.color = 'purple';
+                                        break;
+                                    default:
+                                        break;
+                                }
+
+                                // 重构message
+                                var msg = row.source.className + '.' + row.source.methodName
+                                    + '(' + row.source.fileName + ':' + row.source.lineNumber + ') 》 '
+                                    + row.message;
+                                // 如果有异常抛出，拼接异常栈信息
+                                if (row.thrown) {
+                                    msg += '\n' + row.thrown.type + ': ' + row.thrown.message;
+                                    // 遍历拼接异常栈信息
+                                    var stackTrace = row.thrown.stackTrace
+                                    for (j in stackTrace) {
+                                        msg += '\n    at '
+                                            + stackTrace[j].className + '.' + stackTrace[j].methodName
+                                            + '(' + stackTrace[j].fileName + ':' + stackTrace[j].lineNumber + ')'
+                                    }
+                                }
+                                // 更新信息
+                                row.message = msg;
+                            }
+                            // 更新表格数据
+                            vm.items = resp.data.content
+
+                            // 更新分页控件
+                            vm.params.elementCount = resp.data.totalElements
+                            // console.log('totalElements=' + resp.data.totalElements)
+                            vm.initLayPage()
+                        }
+                        else {
+                            vm.items = []
+                            vm.params.elementCount = 0
+                            vm.initLayPage()
+                        }
+                    },
+                    error: function (resp) {
+                        resp = resp.responseJSON
+                        alert(resp.msg)
+                        window.location.href = 'login.html'
+                    }
+                });
+            },
+            /**
+             * 初始化分页控件函数。每次分页控件配置有变化时，都要调用这个函数重新画控件
+             * @author Yuanwl
+             * @date 2018-11-10 12:47:32
+             * @version v1.0.0
+             */
+            initLayPage: function () {
+                // 分页
+                laypage.render({
+                    elem: 'table-pages',
+                    count: vm.params.elementCount, // 总数据条数
+                    curr: vm.params.pageNo, // 当前页码
+                    limit: vm.params.pageSize, // 每页显示多少条
+                    first: "首页",
+                    last: "尾页",
+                    layout: ['first', 'prev', 'page', 'next', 'last', 'count', 'skip'],
+                    jump: function (obj, first) { // 跳转事件函数，点击页码、跳页时触发
+                        // obj包含了当前分页的所有参数，比如：
+                        // console.log('当前页：' + obj.curr)
+                        // console.log('页大小：' + obj.limit)
+                        // 非首次才执行
+                        if (!first) {
+                            vm.params.pageNo = obj.curr
+                            vm.params.pageSize = obj.limit
+                            vm.search()
+                        }
+                    }
+                });
+            }
+        }
+    });
+</script>
+
+</html>
