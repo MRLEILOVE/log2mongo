@@ -55,6 +55,13 @@ public class Log implements Serializable {
     /** 出现异常时抛出的异常信息 */
     private Thrown thrown;
 
+
+    /**
+     * 内部类：异常抛出信息
+     * @author Yuanwl
+     * @date 2018-11-14 09:29:53
+     * @version v1.0.0
+     */
     @Data
     private class Thrown {
         /** 异常类 */

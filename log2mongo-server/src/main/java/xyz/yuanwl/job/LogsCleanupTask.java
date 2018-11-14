@@ -1,5 +1,6 @@
 package xyz.yuanwl.job;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -14,6 +15,7 @@ import xyz.yuanwl.service.TestService;
  * @date 2018/10/21 17:14
  */
 @Component
+@Slf4j
 public class LogsCleanupTask {
 
 	@Autowired
@@ -34,7 +36,7 @@ public class LogsCleanupTask {
 	@Scheduled(cron = "0 0 2 * * ?") // 每天凌晨2点执行
 //	@Scheduled(cron = "*/5 * * * * ?") // 每5秒钟执行一次
 	public void clean(){
-		System.err.println("cleaning...");
+		log.info("LogsCleanupTask.clean()...");
 		// 清理测试环境日志
 		testService.deleteLogsBefore(logsRtProperties.getTest());
 		// 清理生产环境日志
