@@ -15,6 +15,8 @@
     <link rel="stylesheet" href="layui/css/layui.css"/>
     <link rel="stylesheet" href="css/admin.css"/>
     <link rel="stylesheet" type="text/css" media="screen and (max-width:992px)" href="css/admin.mobile.css">
+    <link rel="stylesheet" href="css/shCore.css">
+    <link rel="stylesheet" href="css/shCoreDefault.css">
 </head>
 
 <body>
@@ -106,10 +108,14 @@
                             <span class="layui-table-bd">{{item.date}}</span>
                         </td>
                         <td>
-                            <span class="layui-table-bd">{{item.threadName}}</span>
+                            <pre class="layui-table-bd brush:java">
+                                {{item.threadName}}
+                            </pre>
                         </td>
                         <td>
-                            <pre class="layui-table-bd" style="word-wrap:break-word;word-break:break-all;">{{item.message}}</pre>
+                            <pre class="layui-table-bd brush:java" style="word-wrap:break-word;word-break:break-all;">
+                                {{item.message}}
+                            </pre>
                         </td>
                     </tr>
                     <tr v-show="items.length == 0">
@@ -129,6 +135,9 @@
 <script type="text/javascript" src="layui/layui.js"></script>
 <script src="https://cdn.bootcss.com/vue/2.5.8/vue.min.js"></script>
 <script src="js/base.js"></script>
+<script src="js/XRegExp.js"></script>
+<script src="js/shCore.js"></script>
+<script src="js/shBrushJava.js"></script>
 <script>
     // 这里是通用的Vue的起始
     var vm = new Vue({
@@ -330,6 +339,9 @@
             }
         }
     });
+
+
+    SyntaxHighlighter.all();
 </script>
 
 </html>
