@@ -1,7 +1,6 @@
-# log2mongo 简单日志管理系统
-
-> by Yuanwl
-
+## 效果展示
+![在这里插入图片描述](https://img-blog.csdnimg.cn/20190530140016156.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzM0ODQ1Mzk0,size_16,color_FFFFFF,t_70)
+![在这里插入图片描述](https://img-blog.csdnimg.cn/20190530140053726.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzM0ODQ1Mzk0,size_16,color_FFFFFF,t_70)
 ## 项目简介
 
 为方便开发者查看线上服务器日志，做的一个简单的日志管理系统。
@@ -12,7 +11,7 @@
 
 ### log2mongo
 
-根模块，这个模块又继承于 yuanwl-framework（个人项目简单框架），可以方便地使用该模块的各种通用模块和依赖。
+根模块，这个模块又继承于 [yuanwl-framework](https://github.com/MRLEILOVE/framework-parent.git)（个人项目简单框架），可以方便地使用该模块的各种通用模块和依赖。
 
 - log2mongo-server：日志管理系统，读取MongoDB记录的日志，以友好的方式呈现给开发者；
 - log4j2-demo：使用log4j2记录日志的demo，在这里面可以把日志写到MongoDB；
